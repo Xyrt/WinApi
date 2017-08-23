@@ -1,0 +1,77 @@
+#include <Windows.h>
+#include "resource.h"
+
+BOOL CALLBACK DlgProc(HWND hwnd, UINT iMsg, WPARAM, LPARAM);
+
+#define ID_BUTTON 3000
+
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
+{
+	//return DialogBox(hInstance, MAKEINTRESOURCE(IDD_DIALOG1), NULL, DlgProc);
+	HWND hwnd = CreateDialog(hInstance, MAKEINTRESOURCE(IDD_DIALOG3), NULL, DlgProc);
+	ShowWindow(hwnd, SW_NORMAL);
+	UpdateWindow(hwnd);
+
+	MSG msg;
+
+	while (GetMessage(&msg, NULL, 0, 0))
+	{
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+	return msg.wParam;
+}
+
+BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	static HWND hStatic1;
+	static HWND HbUTcKnopka;
+	static HWND hButOk;
+	static HWND hButKO;
+
+	switch (uMsg)
+	{
+	case WM_INITDIALOG:
+		hStatic1 = CreateWindowEx(WS_EX_TOPMOST, L"STATIC", L"YA RODILS9", WS_CHILD | WS_VISIBLE, 0, 0, 70, 40, hwnd, NULL, GetModuleHandle(NULL), NULL);
+		hButOk = GetDlgItem(hwnd, IDC_BUTTON1);
+		hButKO = GetDlgItem(hwnd, IDC_BUTTON2);
+		HbUTcKnopka = CreateWindowEx(WS_EX_TOPMOST, L"BUTTON", L"Knopochka ADIN", WS_CHILD | WS_VISIBLE, 0, 60, 120, 60, hwnd, (HMENU)ID_BUTTON, GetModuleHandle(NULL), NULL);
+		if (!hStatic1)
+		{
+			MessageBox(NULL, L"No", L"", MB_OK);
+		}
+		return true;
+	case WM_COMMAND:
+		if (lParam == LPARAM(hButOk))
+		{
+			MessageBox(NULL, L"ALLO", L"Hello Darling", MB_OK);
+		}
+		
+		if (SendMessage(hButKO, BM_GETCHECK, 0, 0) == BST_UNCHECKED)
+		{
+			SendMessage(hButKO, BM_SETCHECK, BST_UNCHECKED, 0);
+		}
+
+		/*if (LOWORD(wParam) == IDC_BUTTON1)
+		{
+			MessageBox(NULL, L"ALLO", L"Hello Darling", MB_OK);
+		}*/
+	case WM_CLOSE:
+		DestroyWindow(hwnd);
+		PostQuitMessage(0);
+		return true;
+	}
+	return false;
+
+	//switch (uMsg)
+	//{
+	//case WM_CLOSE:
+	//	EndDialog(hwnd, 0);
+	//	return true;
+	//default:
+	//	//return false;
+	//	break;
+	//}
+
+	//return false;
+}
