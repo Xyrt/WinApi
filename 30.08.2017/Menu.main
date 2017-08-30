@@ -1,0 +1,145 @@
+#include <Windows.h>
+#include <commdlg.h.>
+#include "resource.h"
+
+BOOL CALLBACK DlgProc(HWND hwnd, UINT iMsg, WPARAM, LPARAM);
+BOOL CALLBACK DlgProcMiracle(HWND hwnd, UINT iMsg, WPARAM, LPARAM);
+
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
+{
+	LoadLibrary(L"Riched20.dll");
+	HACCEL hAcc = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDR_ACCELERATOR1));
+
+	HWND hwnd = CreateDialog(hInstance, MAKEINTRESOURCE(IDD_DIALOG1), NULL, DlgProc);
+	ShowWindow(hwnd, SW_NORMAL);
+	UpdateWindow(hwnd);
+
+	MSG msg;
+
+	while (GetMessage(&msg, NULL, 0, 0))
+	{
+		if (!TranslateAccelerator(hwnd, hAcc, &msg))
+		{
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+	}
+	return msg.wParam;
+}
+
+BOOL CALLBACK DlgProcMiracle(HWND hwnd, UINT iMsg, WPARAM, LPARAM)
+{
+	switch (iMsg)
+	{
+	case WM_CLOSE:
+		EndDialog(hwnd, 0);
+		return true;
+	}
+	return false;
+}
+
+BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	
+	static HWND hEdit;
+	static HMENU hMenu;
+	RECT rect;
+	static BOOL flagFont;
+	static BOOL flagBuff;
+	static OPENFILENAME openFile;
+	static wchar_t filePath[256];
+	static wchar_t fileTitle[100];
+
+	static OPENFILENAME saveFile;
+	static wchar_t filePathSave[256];
+	static wchar_t fileTitleSave[100];
+
+	switch (uMsg)
+	{
+	case WM_INITDIALOG:
+
+		memset(&openFile, 0, sizeof(OPENFILENAME));
+		openFile.lStructSize = sizeof(OPENFILENAME);
+		openFile.hInstance = GetModuleHandle(NULL);
+		openFile.hwndOwner = hwnd;
+		openFile.lpstrFile = filePath;
+		openFile.lpstrFileTitle = fileTitle;
+		openFile.nMaxFile = 256;
+		openFile.nMaxFileTitle = 100;
+
+		memset(&saveFile, 0, sizeof(OPENFILENAME));
+		saveFile.lStructSize = sizeof(OPENFILENAME);
+		saveFile.hInstance = GetModuleHandle(NULL);
+		saveFile.hwndOwner = hwnd;
+		saveFile.lpstrFile = filePathSave;
+		saveFile.lpstrFileTitle = fileTitleSave;
+		saveFile.nMaxFile = 256;
+		saveFile.nMaxFileTitle = 100;
+
+		hMenu = LoadMenu(GetModuleHandle(NULL), MAKEINTRESOURCE(IDR_MENU1));
+		SetMenu(hwnd, hMenu);
+		hEdit = GetDlgItem(hwnd, IDC_EDIT);
+	//	EnableMenuItem(hMenu, ID_OPEN, MF_BYCOMMAND | MF_DISABLED);
+		CheckMenuItem(hMenu, ID_ABOUT, MF_BYCOMMAND | MF_CHECKED);
+		flagFont = true;
+		flagBuff = false;
+		EnableMenuItem(hMenu, ID_INSERT, MF_BYCOMMAND | MF_DISABLED);
+		return true;
+	case WM_LBUTTONDOWN:
+		CheckMenuItem(hMenu, ID_ABOUT, MF_BYCOMMAND | MF_CHECKED);
+		return true;
+	case WM_COMMAND:
+		if (LOWORD(wParam) == ID_ABOUT)
+		{
+			if (flagFont)
+			{
+				CheckMenuItem(hMenu, ID_ABOUT, MF_BYCOMMAND | MF_UNCHECKED);
+			}
+			else
+			{
+				CheckMenuItem(hMenu, ID_ABOUT, MF_BYCOMMAND | MF_CHECKED);
+			}
+			flagFont = !flagFont;
+		}
+		else if (LOWORD(wParam) == ID_CUT)
+		{
+			SendMessage(hEdit, WM_CUT, 0, 0);
+			flagBuff = true;
+			EnableMenuItem(hMenu, ID_INSERT, MF_BYCOMMAND | MF_ENABLED);
+		}
+		else if (LOWORD(wParam) == ID_COPY)
+		{
+			SendMessage(hEdit, WM_COPY, 0, 0);
+			flagBuff = true;
+			EnableMenuItem(hMenu, ID_INSERT, MF_BYCOMMAND | MF_ENABLED);
+		}
+		else if (LOWORD(wParam) == ID_INSERT)
+		{
+			SendMessage(hEdit, WM_PASTE, 0, 0);
+		}
+		else if (LOWORD(wParam) == ID_MIRACLE)
+		{
+			DialogBox(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_DIALOG2), hwnd, DlgProcMiracle);
+
+		}
+		else if (LOWORD(wParam) == ID_OPEN)
+		{
+			GetOpenFileName(&openFile);
+			SetWindowText(hwnd, openFile.lpstrFileTitle);
+		}
+		else if (LOWORD(wParam) == ID_SAVEAS)
+		{
+			GetOpenFileName(&saveFile);
+		}
+		return true;
+	case WM_SIZE:
+		GetClientRect(hwnd, &rect);
+		MoveWindow(hEdit, 0, 0, rect.right, rect.bottom, true);
+		return true;
+	case WM_CLOSE:
+		DestroyWindow(hwnd);
+		PostQuitMessage(0);
+		return true;
+	}
+	return false;
+}
