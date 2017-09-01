@@ -1,0 +1,19 @@
+#include <Windows.h>
+#include "MyWindow.h"
+#include "resource.h"
+
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
+{
+	MyWindow window;
+	HWND hWnd = CreateDialog(hInstance, MAKEINTRESOURCE(IDD_DIALOG1), NULL, MyWindow::DlgProc);
+	ShowWindow(hWnd, SW_NORMAL);
+	UpdateWindow(hWnd);
+
+	MSG msg;
+	while (GetMessage(&msg, 0, 0, 0))
+	{
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+	return msg.wParam;
+}
